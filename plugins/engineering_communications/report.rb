@@ -1,21 +1,26 @@
 module SketchupExtensions
   module EngineeringCommunications
     class Report
-      def self.generate_report
+      def self.generate_report(selected = false)
         report = Report.new
-        report.generate
+        report.generate(selected)
       end
 
-      def generate
+      def generate(selected)
         @dialog ||= create_dialog
-        @dialog.set_html(get_html)
+        @dialog.set_html(get_html(selected))
         @dialog.visible? ? @dialog.bring_to_front : @dialog.show
       end
 
-      def get_html
+      def get_html(selected)
 
         model = Sketchup.active_model
-        entities = model.entities
+
+        if selected
+          entities = model.selection
+        else
+          entities = model.entities
+        end
 
         # Группируем и суммируем длину компонент
         components = {}

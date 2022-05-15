@@ -4,7 +4,11 @@ module SketchupExtensions
       CURSOR_PATH = Sketchup.find_support_file("pipe.png", "Plugins/engineering_communications")
       CURSOR_PIPE = UI.create_cursor(CURSOR_PATH, 2, 1)
       CABLE_RADIUS = 10.mm # В модели используются только дюймы, метод mm конвертирует mm в дюймы
-      CABLE_COLOR = Sketchup::Color.new(192, 192, 192)
+
+      def initialize (name, color) # конструктор класса.
+        @name = name # переменная объекта
+        @color = color
+      end
 
       # Происходит выбор инструмента в меню или на панели инструментов
       def activate
@@ -131,7 +135,7 @@ module SketchupExtensions
       def create_pipe
         model = Sketchup.active_model
         group = model.active_entities.add_group
-        group.name = "Кабель 20"
+        group.name = @name
         entities = group.entities
 
         # Векторная алгебра, получаем вектор направления цилиндра
@@ -146,7 +150,7 @@ module SketchupExtensions
           circle = entities.add_circle(@picked_first_ip, vector_cylinder, CABLE_RADIUS)
           # Создаем плоскость
           cylinder = entities.add_face(circle)
-          cylinder.material = CABLE_COLOR
+          cylinder.material = @color
 
           # переворачиваем плоскость если нормаль круга не соврадает с вектором инструмента
           if !cylinder.normal.samedirection?(vector_cylinder)
@@ -156,7 +160,7 @@ module SketchupExtensions
           # Вытягиваем круг на длину вектора, получаем цилиндр
           cylinder.pushpull vector_cylinder.length
           group.set_attribute("engineering_communications", "len", vector_cylinder.length)
-          group.set_attribute("engineering_communications", "name", "ВВГ-3х2,5")
+          group.set_attribute("engineering_communications", "name", @name)
 
           # Рисуем шарик в месте стыка
           if !@first_segment
@@ -166,7 +170,7 @@ module SketchupExtensions
             # Используем две взаимно перпендикулярных окружности и инструмент следовать по линии
             circle_ball = entities_ball.add_circle(@picked_first_ip.position, Geom::Vector3d.new(1,0,0), CABLE_RADIUS)
             ball_face = entities_ball.add_face(circle_ball)
-            ball_face.material = CABLE_COLOR
+            ball_face.material = @color
             path = entities_ball.add_circle(@picked_first_ip.position, Geom::Vector3d.new(0,1,0), CABLE_RADIUS - CABLE_RADIUS / 2 )
             ball_face.followme path
           else
